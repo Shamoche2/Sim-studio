@@ -20,7 +20,7 @@ if (shots) fs.mkdirSync(shots, { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 } });
   let failures = 0;
-  for (const item of catalog.filter((c) => c.id.includes(filter))) {
+  for (const item of catalog.filter((c) => c.id.includes(filter) || c.subject === filter)) {
     const errors = [];
     const onErr = (e) => errors.push(e.message || e.text());
     page.on("pageerror", onErr);
