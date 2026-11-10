@@ -7,7 +7,7 @@ Teachers type a topic ("projectile motion", "phases of the moon", "supply and de
 Requires Node.js 22 or newer.
 
 ```bash
-cd sim-generator
+cd sim-studio
 npm install
 cp .env.example .env      # then paste your key from https://console.anthropic.com
 npm start                 # open http://localhost:3000
