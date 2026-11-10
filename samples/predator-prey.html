@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predator–Prey Populations</title>
+<style>
+  :root { --bg:#f5f8f4; --card:#fff; --text:#1d2a1f; --muted:#5f6d61; --prey:#2b8a3e; --pred:#c2410c; --accent:#1c7ed6; --border:#dbe4dc; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:1100px; margin:0 auto; padding:16px; }
+  h1 { margin:0 0 4px; font-size:1.6rem; }
+  .intro { margin:0 0 14px; color:var(--muted); }
+  .grid { display:grid; grid-template-columns:1fr 300px; gap:14px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; }
+  .charts { display:grid; grid-template-columns:2fr 1fr; gap:12px; }
+  .chart h2 { font-size:.95rem; margin:0 0 6px; }
+  .chart .box { position:relative; width:100%; aspect-ratio: 4/3; }
+  .charts .chart:first-child .box { aspect-ratio: 16/9; }
+  canvas { width:100%; height:100%; display:block; }
+  .legend { display:flex; gap:16px; font-size:.9rem; margin-top:6px; }
+  .sw { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .ctrl { margin-bottom:11px; }
+  .ctrl label { display:flex; justify-content:space-between; font-weight:600; font-size:.92rem; }
+  .ctrl output { font-variant-numeric:tabular-nums; color:var(--accent); }
+  .ctrl small { display:block; color:var(--muted); font-size:.8rem; }
+  input[type=range] { width:100%; accent-color:var(--accent); }
+  .buttons { display:flex; gap:8px; margin-top:4px; }
+  button { flex:1; font:inherit; font-weight:600; padding:9px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
+  button.secondary { background:#fff; color:var(--accent); }
+  button:focus-visible, input:focus-visible { outline:3px solid #a5d8ff; outline-offset:2px; }
+  .readouts { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-top:12px; }
+  .readout { background:var(--bg); border-radius:8px; padding:8px 10px; }
+  .readout span { display:block; font-size:.8rem; color:var(--muted); }
+  .readout b { font-size:1.15rem; font-variant-numeric:tabular-nums; }
+  .try h2 { font-size:1.1rem; margin:16px 0 6px; }
+  .try ol { margin:0; padding-left:20px; }
+  .note { font-size:.85rem; color:var(--muted); margin-top:10px; }
+  @media (max-width:860px) { .grid, .charts { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Predator–Prey Populations</h1>
+  <p class="intro">Rabbits (prey) multiply when there are few foxes. Foxes (predators) multiply when there are plenty of rabbits to eat. Watch how the two populations rise and fall in a repeating cycle.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="charts">
+        <div class="chart">
+          <h2>Population over time</h2>
+          <div class="box"><canvas id="ts" role="img" aria-label="Rabbit and fox populations over time"></canvas></div>
+          <div class="legend"><span><i class="sw" style="background:var(--prey)"></i>Rabbits</span><span><i class="sw" style="background:var(--pred)"></i>Foxes</span></div>
+        </div>
+        <div class="chart">
+          <h2>Rabbits vs. foxes (cycle)</h2>
+          <div class="box"><canvas id="ph" role="img" aria-label="Phase plot of foxes against rabbits"></canvas></div>
+        </div>
+      </div>
+      <div class="readouts">
+        <div class="readout"><span>Year</span><b id="rT">0.0</b></div>
+        <div class="readout"><span>Rabbits</span><b id="rX" style="color:var(--prey)">0</b></div>
+        <div class="readout"><span>Foxes</span><b id="rY" style="color:var(--pred)">0</b></div>
+        <div class="readout"><span>Balance point</span><b id="rEq">–</b></div>
+      </div>
+    </div>
+
+    <div class="card" aria-label="Controls">
+      <div class="ctrl"><label for="a">Rabbit birth rate <output id="oa"></output></label>
+        <input id="a" type="range" min="0.2" max="2" step="0.05" value="1"><small>How fast rabbits multiply with no foxes</small></div>
+      <div class="ctrl"><label for="b">Hunting success <output id="ob"></output></label>
+        <input id="b" type="range" min="0.02" max="0.3" step="0.01" value="0.1"><small>How often a fox–rabbit meeting ends in a meal</small></div>
+      <div class="ctrl"><label for="d">Fox growth from food <output id="od"></output></label>
+        <input id="d" type="range" min="0.02" max="0.2" step="0.005" value="0.075"><small>How well foxes turn meals into new foxes</small></div>
+      <div class="ctrl"><label for="g">Fox death rate <output id="og"></output></label>
+        <input id="g" type="range" min="0.2" max="2.5" step="0.05" value="1.5"><small>How fast foxes die off with no food</small></div>
+      <div class="ctrl"><label for="x0">Starting rabbits <output id="ox0"></output></label>
+        <input id="x0" type="range" min="1" max="60" step="1" value="10"></div>
+      <div class="ctrl"><label for="y0">Starting foxes <output id="oy0"></output></label>
+        <input id="y0" type="range" min="1" max="30" step="1" value="5"></div>
+      <div class="buttons">
+        <button id="play">Pause</button>
+        <button id="reset" class="secondary">Reset</button>
+      </div>
+      <p class="note">Simplified: the Lotka–Volterra model. Real ecosystems also have limited grass, disease and other animals. Populations are in hundreds.</p>
+    </div>
+  </div>
+
+  <section class="try">
+    <h2>Try this</h2>
+    <ol>
+      <li>Watch one full cycle. Which peaks first, rabbits or foxes? Why does the fox peak lag behind?</li>
+      <li>Set the starting numbers equal to the balance point shown in the readouts and press Reset. What happens to the cycle?</li>
+      <li>Increase hunting success. Do foxes end up with more food over time, or fewer rabbits to eat?</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const ids = ["a", "b", "d", "g", "x0", "y0"];
+  const el = Object.fromEntries(ids.map((k) => [k, $(k)]));
+  const P = () => Object.fromEntries(ids.map((k) => [k, +el[k].value]));
+  const WINDOW = 30;        // years shown on the time chart
+  const DT = 0.01;          // integration step (years)
+  const SPEED = 2;          // simulated years per real second
+  let t, x, y, history, running = true, last = null;
+
+  function deriv(x, y, p) {
+    return [p.a * x - p.b * x * y, p.d * x * y - p.g * y];
+  }
+
+  // 4th-order Runge–Kutta keeps the cycles closed instead of spiralling outwards.
+  function step(p) {
+    const [k1x, k1y] = deriv(x, y, p);
+    const [k2x, k2y] = deriv(x + k1x * DT / 2, y + k1y * DT / 2, p);
+    const [k3x, k3y] = deriv(x + k2x * DT / 2, y + k2y * DT / 2, p);
+    const [k4x, k4y] = deriv(x + k3x * DT, y + k3y * DT, p);
+    x = Math.max(0, x + (DT / 6) * (k1x + 2 * k2x + 2 * k3x + k4x));
+    y = Math.max(0, y + (DT / 6) * (k1y + 2 * k2y + 2 * k3y + k4y));
+    if (!isFinite(x) || x > 1e6) x = 1e6;
+    if (!isFinite(y) || y > 1e6) y = 1e6;
+    t += DT;
+  }
+
+  function reset() {
+    const p = P();
+    t = 0; x = p.x0; y = p.y0; history = [[t, x, y]]; last = null;
+    render();
+  }
+
+  function setup(canvas) {
+    const ctx = canvas.getContext("2d");
+    const r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, W: r.width, H: r.height };
+  }
+
+  function axes(ctx, W, H, pad, xLabel, yLabel) {
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "#9aa79c"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, 8); ctx.lineTo(pad, H - pad); ctx.lineTo(W - 8, H - pad); ctx.stroke();
+    ctx.fillStyle = "#5f6d61"; ctx.font = "12px system-ui";
+    ctx.fillText(xLabel, W - 8 - ctx.measureText(xLabel).width, H - 4);
+    ctx.fillText(yLabel, pad + 6, 14);
+  }
+
+  function render() {
+    const p = P();
+    const maxPop = Math.max(20, ...history.map((h) => Math.max(h[1], h[2]))) * 1.1;
+
+    // Time series
+    {
+      const { ctx, W, H } = setup($("ts")), pad = 40;
+      axes(ctx, W, H, pad, "years", "population");
+      const t0 = Math.max(0, t - WINDOW);
+      const X = (tt) => pad + ((tt - t0) / WINDOW) * (W - pad - 10);
+      const Y = (v) => H - pad - (v / maxPop) * (H - pad - 24);
+      ctx.fillStyle = "#5f6d61";
+      for (let k = Math.ceil(t0 / 5) * 5; k <= t0 + WINDOW; k += 5) ctx.fillText(k, X(k) - 4, H - pad + 16);
+      ctx.fillText(Math.round(maxPop), 4, 28);
+      [[1, "#2b8a3e"], [2, "#c2410c"]].forEach(([i, color]) => {
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.beginPath();
+        let started = false;
+        for (const h of history) {
+          if (h[0] < t0) continue;
+          started ? ctx.lineTo(X(h[0]), Y(h[i])) : (ctx.moveTo(X(h[0]), Y(h[i])), started = true);
+        }
+        ctx.stroke();
+      });
+    }
+
+    // Phase plot
+    {
+      const { ctx, W, H } = setup($("ph")), pad = 40;
+      axes(ctx, W, H, pad, "rabbits", "foxes");
+      const X = (v) => pad + (v / maxPop) * (W - pad - 10);
+      const Y = (v) => H - pad - (v / maxPop) * (H - pad - 24);
+      const ex = p.g / p.d, ey = p.a / p.b;
+      ctx.fillStyle = "#1c7ed6"; ctx.beginPath(); ctx.arc(X(ex), Y(ey), 4, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(28,126,214,.65)"; ctx.lineWidth = 1.5; ctx.beginPath();
+      history.forEach((h, i) => (i ? ctx.lineTo(X(h[1]), Y(h[2])) : ctx.moveTo(X(h[1]), Y(h[2]))));
+      ctx.stroke();
+      ctx.fillStyle = "#1d2a1f"; ctx.beginPath(); ctx.arc(X(x), Y(y), 5, 0, Math.PI * 2); ctx.fill();
+    }
+
+    $("rT").textContent = t.toFixed(1);
+    $("rX").textContent = Math.round(x);
+    $("rY").textContent = Math.round(y);
+    $("rEq").textContent = `${Math.round(p.g / p.d)} rabbits, ${Math.round(p.a / p.b)} foxes`;
+    $("oa").textContent = p.a.toFixed(2); $("ob").textContent = p.b.toFixed(2);
+    $("od").textContent = p.d.toFixed(3); $("og").textContent = p.g.toFixed(2);
+    $("ox0").textContent = p.x0; $("oy0").textContent = p.y0;
+  }
+
+  function frame(now) {
+    if (running) {
+      const elapsed = Math.min(0.05, (now - (last ?? now)) / 1000);
+      last = now;
+      const p = P();
+      const steps = Math.round((elapsed * SPEED) / DT);
+      for (let i = 0; i < steps; i++) step(p);
+      history.push([t, x, y]);
+      if (history.length > 6000) history.splice(0, history.length - 6000);
+      render();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  $("play").addEventListener("click", () => {
+    running = !running; last = null;
+    $("play").textContent = running ? "Pause" : "Play";
+  });
+  $("reset").addEventListener("click", reset);
+  ["a", "b", "d", "g"].forEach((k) => el[k].addEventListener("input", render));
+  ["x0", "y0"].forEach((k) => el[k].addEventListener("input", reset));
+  new ResizeObserver(() => render()).observe(document.querySelector(".charts"));
+
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projectile Motion</title>
+<style>
+  :root { --bg:#f6f8fc; --card:#fff; --text:#1a2030; --muted:#5d667a; --accent:#2f6fed; --path:#e8590c; --border:#dde2ec; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:1100px; margin:0 auto; padding:16px; }
+  h1 { margin:0 0 4px; font-size:1.6rem; }
+  .intro { margin:0 0 14px; color:var(--muted); }
+  .grid { display:grid; grid-template-columns: 1fr 300px; gap:14px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; }
+  #wrap { position:relative; width:100%; aspect-ratio: 16/9; }
+  canvas { width:100%; height:100%; display:block; border-radius:8px; }
+  .ctrl { margin-bottom:12px; }
+  .ctrl label { display:flex; justify-content:space-between; font-weight:600; font-size:.95rem; }
+  .ctrl output { font-variant-numeric: tabular-nums; color:var(--accent); }
+  input[type=range] { width:100%; accent-color:var(--accent); }
+  select { width:100%; padding:6px; font:inherit; border-radius:6px; border:1px solid var(--border); }
+  .buttons { display:flex; gap:8px; }
+  button { flex:1; font:inherit; font-weight:600; padding:9px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
+  button.secondary { background:#fff; color:var(--accent); }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline:3px solid #9bbcff; outline-offset:2px; }
+  .readouts { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-top:14px; }
+  .readout { background:var(--bg); border-radius:8px; padding:8px 10px; }
+  .readout span { display:block; font-size:.8rem; color:var(--muted); }
+  .readout b { font-size:1.15rem; font-variant-numeric: tabular-nums; }
+  .try h2 { font-size:1.1rem; margin:16px 0 6px; }
+  .try ol { margin:0; padding-left:20px; }
+  .note { font-size:.85rem; color:var(--muted); margin-top:10px; }
+  @media (max-width: 760px) { .grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Projectile Motion</h1>
+  <p class="intro">Launch a ball and watch its path. Gravity pulls it down while it keeps moving sideways at a steady speed, which makes the curved path called a <em>parabola</em>.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div id="wrap"><canvas id="c" aria-label="Projectile trajectory" role="img"></canvas></div>
+      <div class="readouts">
+        <div class="readout"><span>Time</span><b id="rT">0.00 s</b></div>
+        <div class="readout"><span>Horizontal distance</span><b id="rX">0.0 m</b></div>
+        <div class="readout"><span>Height</span><b id="rY">0.0 m</b></div>
+        <div class="readout"><span>Predicted range</span><b id="rR">–</b></div>
+        <div class="readout"><span>Predicted max height</span><b id="rH">–</b></div>
+        <div class="readout"><span>Predicted flight time</span><b id="rF">–</b></div>
+      </div>
+    </div>
+
+    <div class="card" aria-label="Controls">
+      <div class="ctrl"><label for="angle">Launch angle <output id="oAngle"></output></label>
+        <input id="angle" type="range" min="5" max="85" step="1" value="45"></div>
+      <div class="ctrl"><label for="speed">Launch speed <output id="oSpeed"></output></label>
+        <input id="speed" type="range" min="5" max="40" step="1" value="20"></div>
+      <div class="ctrl"><label for="height">Launch height <output id="oHeight"></output></label>
+        <input id="height" type="range" min="0" max="20" step="1" value="0"></div>
+      <div class="ctrl"><label for="planet">Gravity</label>
+        <select id="planet">
+          <option value="9.81">Earth (9.81 m/s²)</option>
+          <option value="1.62">Moon (1.62 m/s²)</option>
+          <option value="3.71">Mars (3.71 m/s²)</option>
+          <option value="24.79">Jupiter (24.79 m/s²)</option>
+        </select></div>
+      <div class="ctrl"><label><span><input id="keep" type="checkbox" checked> Keep previous paths</span></label></div>
+      <div class="buttons">
+        <button id="launch">Launch</button>
+        <button id="reset" class="secondary">Reset</button>
+      </div>
+      <p class="note">Simplified: no air resistance, flat ground.</p>
+    </div>
+  </div>
+
+  <section class="try">
+    <h2>Try this</h2>
+    <ol>
+      <li>Keep the speed fixed and try 30°, 45° and 60°. Which angle goes farthest? Do 30° and 60° land in the same place?</li>
+      <li>Double the speed from 15 m/s to 30 m/s. Does the range double, or does it grow by more?</li>
+      <li>Switch to the Moon. Predict how much farther the ball will go before you launch, then check.</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const canvas = $("c"), ctx = canvas.getContext("2d");
+  const inputs = { angle: $("angle"), speed: $("speed"), height: $("height"), planet: $("planet") };
+  let paths = [];          // finished trajectories: arrays of [x, y]
+  let shot = null;         // { v0, theta, h0, g, t, points }
+  let last = null;
+
+  const params = () => ({
+    theta: (+inputs.angle.value * Math.PI) / 180,
+    v0: +inputs.speed.value,
+    h0: +inputs.height.value,
+    g: +inputs.planet.value,
+  });
+
+  function predict({ theta, v0, h0, g }) {
+    const vx = v0 * Math.cos(theta), vy = v0 * Math.sin(theta);
+    const tFlight = (vy + Math.sqrt(vy * vy + 2 * g * h0)) / g;
+    return { tFlight, range: vx * tFlight, maxH: h0 + (vy * vy) / (2 * g) };
+  }
+
+  // World size adapts so the predicted path always fits on screen.
+  function worldBounds() {
+    const p = predict(params());
+    let maxX = p.range, maxY = p.maxH;
+    for (const path of paths) for (const [x, y] of path) { maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); }
+    return { w: Math.max(10, maxX * 1.12), h: Math.max(5, maxY * 1.2) };
+  }
+
+  function resize() {
+    const r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  function draw() {
+    const W = canvas.clientWidth, H = canvas.clientHeight, pad = 36;
+    const { w, h } = worldBounds();
+    const s = Math.min((W - pad * 1.5) / w, (H - pad * 1.5) / h);
+    const X = (x) => pad + x * s, Y = (y) => H - pad - y * s;
+
+    ctx.clearRect(0, 0, W, H);
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, "#dbe9ff"); sky.addColorStop(1, "#f4f8ff");
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+    // Grid + axis labels
+    const step = niceStep(Math.max(w, h) / 8);
+    ctx.font = "12px system-ui"; ctx.fillStyle = "#5d667a"; ctx.strokeStyle = "rgba(0,0,0,.07)";
+    for (let x = 0; x <= w; x += step) {
+      ctx.beginPath(); ctx.moveTo(X(x), Y(0)); ctx.lineTo(X(x), Y(h)); ctx.stroke();
+      ctx.fillText(`${+x.toFixed(1)} m`, X(x) - 10, H - pad + 16);
+    }
+    for (let y = step; y <= h; y += step) {
+      ctx.beginPath(); ctx.moveTo(X(0), Y(y)); ctx.lineTo(X(w), Y(y)); ctx.stroke();
+      ctx.fillText(`${+y.toFixed(1)}`, 4, Y(y) + 4);
+    }
+    ctx.fillStyle = "#7fb069"; ctx.fillRect(0, Y(0), W, H - Y(0));
+
+    // Launch tower + cannon
+    const p = params();
+    ctx.fillStyle = "#8d6e63"; ctx.fillRect(X(0) - 8, Y(p.h0), 16, p.h0 * s);
+    ctx.save(); ctx.translate(X(0), Y(p.h0)); ctx.rotate(-p.theta);
+    ctx.fillStyle = "#37474f"; ctx.fillRect(0, -6, 30, 12); ctx.restore();
+
+    // Old paths faded, current path bright
+    paths.forEach((path) => strokePath(path, "rgba(232,89,12,.3)", X, Y));
+    if (shot) strokePath(shot.points, "#e8590c", X, Y);
+
+    // Ball + velocity arrow
+    if (shot) {
+      const { x, y, vx, vy } = state(shot, shot.t);
+      ctx.fillStyle = "#2f6fed"; ctx.beginPath(); ctx.arc(X(x), Y(y), 8, 0, Math.PI * 2); ctx.fill();
+      arrow(X(x), Y(y), X(x) + vx * 3, Y(y) - vy * 3, "#1a2030");
+    }
+  }
+
+  function strokePath(points, color, X, Y) {
+    if (points.length < 2) return;
+    ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(X(points[0][0]), Y(points[0][1]));
+    for (const [x, y] of points) ctx.lineTo(X(x), Y(y));
+    ctx.stroke();
+  }
+
+  function arrow(x1, y1, x2, y2, color) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    ctx.strokeStyle = ctx.fillStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - 9 * Math.cos(a - 0.4), y2 - 9 * Math.sin(a - 0.4));
+    ctx.lineTo(x2 - 9 * Math.cos(a + 0.4), y2 - 9 * Math.sin(a + 0.4));
+    ctx.fill();
+  }
+
+  function niceStep(raw) {
+    const pow = 10 ** Math.floor(Math.log10(raw)), n = raw / pow;
+    return (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * pow;
+  }
+
+  function state(sh, t) {
+    const vx = sh.v0 * Math.cos(sh.theta), vy0 = sh.v0 * Math.sin(sh.theta);
+    return { x: vx * t, y: sh.h0 + vy0 * t - 0.5 * sh.g * t * t, vx, vy: vy0 - sh.g * t };
+  }
+
+  function updateReadouts() {
+    const p = params(), pr = predict(p);
+    $("oAngle").textContent = `${inputs.angle.value}°`;
+    $("oSpeed").textContent = `${inputs.speed.value} m/s`;
+    $("oHeight").textContent = `${inputs.height.value} m`;
+    $("rR").textContent = `${pr.range.toFixed(1)} m`;
+    $("rH").textContent = `${pr.maxH.toFixed(1)} m`;
+    $("rF").textContent = `${pr.tFlight.toFixed(2)} s`;
+    const s = shot ? state(shot, shot.t) : { x: 0, y: p.h0 };
+    $("rT").textContent = `${(shot ? shot.t : 0).toFixed(2)} s`;
+    $("rX").textContent = `${s.x.toFixed(1)} m`;
+    $("rY").textContent = `${Math.max(0, s.y).toFixed(1)} m`;
+  }
+
+  function frame(now) {
+    if (!shot || shot.done) return;
+    const dt = Math.min(0.05, (now - (last ?? now)) / 1000);
+    last = now;
+    shot.t = Math.min(shot.t + dt, shot.tEnd);
+    const s = state(shot, shot.t);
+    shot.points.push([s.x, Math.max(0, s.y)]);
+    if (shot.t >= shot.tEnd) shot.done = true;
+    updateReadouts(); draw();
+    if (!shot.done) requestAnimationFrame(frame);
+  }
+
+  $("launch").addEventListener("click", () => {
+    if (shot && shot.points.length > 1) {
+      if ($("keep").checked) paths.push(shot.points); else paths = [];
+    }
+    const p = params();
+    shot = { ...p, t: 0, tEnd: predict(p).tFlight, points: [[0, p.h0]], done: false };
+    last = null;
+    requestAnimationFrame(frame);
+  });
+
+  $("reset").addEventListener("click", () => { paths = []; shot = null; updateReadouts(); draw(); });
+
+  Object.values(inputs).forEach((el) => el.addEventListener("input", () => { updateReadouts(); draw(); }));
+  new ResizeObserver(resize).observe($("wrap"));
+  updateReadouts();
+})();
+</script>
+</body>
+</html>
