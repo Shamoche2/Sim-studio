@@ -307,5 +307,65 @@
     });
   };
 
+  /**
+   * Particle helpers for gases, liquids, diffusion and reactions.
+   * Particles: { x, y, vx, vy, r, type }. Units are canvas-independent "world" units.
+   */
+  Sim.particles = {
+    make(n, box, speed, props = {}) {
+      return Array.from({ length: n }, () => {
+        const a = Math.random() * Math.PI * 2, v = speed * (0.5 + Math.random());
+        return { x: Sim.rand(box.x0 + 1, box.x1 - 1), y: Sim.rand(box.y0 + 1, box.y1 - 1), vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 1, ...props };
+      });
+    },
+    /** Move and bounce off walls. Returns total wall impulse (for pressure). */
+    move(parts, dt, box) {
+      let impulse = 0;
+      for (const q of parts) {
+        q.x += q.vx * dt; q.y += q.vy * dt;
+        const m = q.m || 1;
+        if (q.x < box.x0 + q.r) { q.x = box.x0 + q.r; impulse += 2 * m * Math.abs(q.vx); q.vx = Math.abs(q.vx); }
+        if (q.x > box.x1 - q.r) { q.x = box.x1 - q.r; impulse += 2 * m * Math.abs(q.vx); q.vx = -Math.abs(q.vx); }
+        if (q.y < box.y0 + q.r) { q.y = box.y0 + q.r; impulse += 2 * m * Math.abs(q.vy); q.vy = Math.abs(q.vy); }
+        if (q.y > box.y1 - q.r) { q.y = box.y1 - q.r; impulse += 2 * m * Math.abs(q.vy); q.vy = -Math.abs(q.vy); }
+      }
+      return impulse;
+    },
+    /** Elastic collisions between particles (grid-accelerated). onHit(a, b) may return true to skip the bounce. */
+    collide(parts, onHit) {
+      const cell = 4, grid = new Map();
+      parts.forEach((q, i) => { const k = ((q.x / cell) | 0) + "," + ((q.y / cell) | 0); (grid.get(k) || grid.set(k, []).get(k)).push(i); });
+      for (const [k, list] of grid) {
+        const [cx, cy] = k.split(",").map(Number);
+        for (let dx = 0; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+          if (dx === 0 && dy < 0) continue;
+          const other = dx || dy ? grid.get(cx + dx + "," + (cy + dy)) : list;
+          if (!other) continue;
+          for (const i of list) for (const j of other) {
+            if ((dx || dy) ? false : j <= i) continue;
+            const a = parts[i], b = parts[j];
+            const ddx = b.x - a.x, ddy = b.y - a.y, d2 = ddx * ddx + ddy * ddy, rr = a.r + b.r;
+            if (d2 >= rr * rr || d2 === 0) continue;
+            if (onHit && onHit(a, b)) continue;
+            const d = Math.sqrt(d2), nx = ddx / d, ny = ddy / d, ma = a.m || 1, mb = b.m || 1;
+            const rel = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+            if (rel <= 0) continue;
+            const imp = (2 * rel) / (ma + mb);
+            a.vx -= imp * mb * nx; a.vy -= imp * mb * ny; b.vx += imp * ma * nx; b.vy += imp * ma * ny;
+            const push = (rr - d) / 2; a.x -= nx * push; a.y -= ny * push; b.x += nx * push; b.y += ny * push;
+          }
+        }
+      }
+    },
+    /** Rescale speeds so the average kinetic energy matches a temperature-like target. */
+    thermostat(parts, target, rate = 0.05) {
+      if (!parts.length) return;
+      const ke = parts.reduce((s, q) => s + 0.5 * (q.m || 1) * (q.vx * q.vx + q.vy * q.vy), 0) / parts.length;
+      if (ke <= 0) return;
+      const f = Math.sqrt(1 + rate * (target / ke - 1));
+      for (const q of parts) { q.vx *= f; q.vy *= f; }
+    },
+  };
+
   window.Sim = Sim;
 })();
