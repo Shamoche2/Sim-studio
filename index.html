@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sim Studio</title>
+  <style>
+    :root {
+      --bg: #f4f5f9; --surface: #fff; --text: #1b1f2a; --muted: #646b7d; --border: #dfe2ea;
+      --accent: #4b5bdc; --accent-soft: #eceefc;
+      --physics: #2f6fed; --chemistry: #e8590c; --biology: #2b8a3e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+    button, input { font: inherit; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+    .top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 14px 0 4px; }
+    .brand { font-weight: 800; font-size: 1.35rem; }
+    .brand span { color: var(--accent); }
+    .tagline { color: var(--muted); }
+    .search { position: relative; padding: 10px 0 14px; }
+    .search input { width: 100%; padding: 14px 16px 14px 46px; font-size: 1.1rem; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); color: var(--text); }
+    .search input:focus { outline: none; border-color: var(--accent); background: #fff; }
+    .search svg { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--muted); }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 14px; }
+    .tab { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 600; color: var(--muted); }
+    .tab[aria-pressed="true"] { background: var(--text); color: #fff; border-color: var(--text); }
+    .tab .n { font-weight: 500; opacity: .7; margin-left: 4px; }
+    main { padding: 18px 0 40px; }
+    .status { color: var(--muted); margin: 0 0 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+    .card { text-align: left; display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; color: inherit; border-top: 4px solid var(--c); transition: transform .1s, box-shadow .1s; }
+    .card:hover, .card:focus-visible { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); outline: none; }
+    .card:focus-visible { box-shadow: 0 0 0 3px var(--accent); }
+    .card .subj { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--c); }
+    .card h3 { margin: 0; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .empty { background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; color: var(--muted); }
+    /* viewer */
+    .viewer { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; z-index: 10; }
+    .viewer[hidden] { display: none; }
+    .vbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .vbar h2 { margin: 0; font-size: 1.05rem; flex: 1; min-width: 160px; }
+    .btn { display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; text-decoration: none; font-weight: 600; white-space: nowrap; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .viewer iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+    footer { color: var(--muted); font-size: .85rem; padding: 20px 0 40px; text-align: center; }
+    @media (max-width: 600px) { .wrap { padding: 0 16px; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand"><span>◎</span> Sim Studio</div>
+        <div class="tagline">Interactive science simulations for the classroom. Works offline.</div>
+      </div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" autocomplete="off" placeholder="Type a topic, e.g. osmosis, Ohm's law, titration… then press Enter" aria-label="Search topics">
+      </div>
+      <div class="tabs" role="group" aria-label="Subject">
+        <button class="tab" data-subject="all" aria-pressed="true">All<span class="n" id="n-all"></span></button>
+        <button class="tab" data-subject="physics" aria-pressed="false">Physics<span class="n" id="n-physics"></span></button>
+        <button class="tab" data-subject="chemistry" aria-pressed="false">Chemistry<span class="n" id="n-chemistry"></span></button>
+        <button class="tab" data-subject="biology" aria-pressed="false">Biology<span class="n" id="n-biology"></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="status" id="status"></p>
+    <div class="grid" id="grid"></div>
+  </main>
+  <footer class="wrap">Pick a simulation, then use “Full screen” to show it on a projector or share the link with students.</footer>
+
+  <div class="viewer" id="viewer" hidden>
+    <div class="vbar">
+      <button class="btn" id="back" type="button">← Library</button>
+      <h2 id="vtitle"></h2>
+      <a class="btn primary" id="full" target="_blank" rel="noopener">Full screen ↗</a>
+    </div>
+    <iframe id="frame" title="Simulation"></iframe>
+  </div>
+
+  <script src="catalog.js"></script>
+  <script>
+    (function () {
+      const CAT = window.CATALOG, $ = (id) => document.getElementById(id);
+      let subject = "all";
+      for (const s of ["all", "physics", "chemistry", "biology"]) $("n-" + s).textContent = CAT.filter((c) => s === "all" || c.subject === s).length;
+
+      const norm = (t) => t.toLowerCase().normalize("NFKD").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+      const STOP = new Set(["the", "of", "and", "a", "an", "in", "on", "to", "for", "how", "what", "law", "s"]);
+      for (const c of CAT) c._title = norm(c.title), c._words = new Set([...norm(c.title).split(" "), ...c.keywords.map(norm)].filter((w) => w.length > 1 && !STOP.has(w))), c._summary = norm(c.summary);
+
+      function score(c, q) {
+        if (!q) return 1;
+        const tokens = q.split(" ").filter((t) => t && !STOP.has(t));
+        let sc = c._title.includes(q) ? 20 : 0;
+        for (const t of tokens) {
+          if (c._words.has(t)) sc += 5;
+          else if ([...c._words].some((w) => (t.length > 2 && w.startsWith(t)) || (w.length > 3 && t.startsWith(w)))) sc += 3;
+          else if (c._summary.includes(t)) sc += 1;
+        }
+        return sc;
+      }
+
+      function results() {
+        const q = norm($("q").value);
+        return CAT.filter((c) => subject === "all" || c.subject === subject)
+          .map((c) => ({ c, s: score(c, q) }))
+          .filter((r) => r.s > 0)
+          .sort((a, b) => b.s - a.s || (q ? 0 : a.c.title.localeCompare(b.c.title)))
+          .map((r) => r.c);
+      }
+
+      function render() {
+        const list = results(), q = $("q").value.trim();
+        $("grid").replaceChildren(...list.map((c) => {
+          const b = document.createElement("button");
+          b.className = "card"; b.type = "button";
+          b.style.setProperty("--c", `var(--${c.subject})`);
+          b.innerHTML = `<span class="subj"></span><h3></h3><p></p>`;
+          b.querySelector(".subj").textContent = c.subject;
+          b.querySelector("h3").textContent = c.title;
+          b.querySelector("p").textContent = c.summary;
+          b.addEventListener("click", () => open(c));
+          return b;
+        }));
+        if (!list.length) {
+          const d = document.createElement("div");
+          d.className = "empty";
+          d.textContent = `No simulation for “${q}” yet. Try a related word, or browse a subject.`;
+          $("grid").append(d);
+        }
+        $("status").textContent = q ? `${list.length} match${list.length === 1 ? "" : "es"} for “${q}”${list.length ? ". Press Enter to open the best one." : ""}` : `${list.length} simulations`;
+      }
+
+      function open(c, push = true) {
+        $("vtitle").textContent = c.title;
+        $("frame").src = c.file;
+        $("full").href = c.file;
+        $("viewer").hidden = false;
+        document.title = c.title + " · Sim Studio";
+        if (push) history.pushState({ id: c.id }, "", "#" + c.subject + "/" + c.id);
+        setTimeout(() => $("back").focus(), 0);
+      }
+      function close(push = true) {
+        $("viewer").hidden = true; $("frame").src = "about:blank"; document.title = "Sim Studio";
+        if (push) history.pushState({}, "", location.pathname + location.search);
+        $("q").focus();
+      }
+      function fromHash() {
+        const id = location.hash.slice(1).split("/")[1], c = CAT.find((x) => x.id === id);
+        if (c) open(c, false); else if (!$("viewer").hidden) close(false);
+      }
+
+      $("q").addEventListener("input", render);
+      $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); const top = results()[0]; if (top) open(top); } });
+      document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+        subject = t.dataset.subject;
+        document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-pressed", String(x === t)));
+        render();
+      }));
+      $("back").addEventListener("click", () => close());
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("viewer").hidden) close(); });
+      window.addEventListener("popstate", fromHash);
+      render();
+      fromHash();
+      if ($("viewer").hidden) $("q").focus();
+    })();
+  </script>
+</body>
+</html>
