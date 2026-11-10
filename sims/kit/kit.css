@@ -34,3 +34,5 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .try li { margin-bottom: 4px; }
 .note { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
 @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } main { padding: 12px; } h1 { font-size: 1.35rem; } }
+.report { margin-top: 18px; font-size: .9rem; }
+.report a { color: var(--muted); }

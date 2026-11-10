@@ -33,3 +33,19 @@ test("every simulation file on disk is listed in the catalog", () => {
     }
   }
 });
+
+test("the offline zip exists and includes every simulation", async () => {
+  const zip = path.join(root, "sim-studio-offline.zip");
+  assert.ok(fs.existsSync(zip), "run: python3 scripts/make-zip.py");
+  const bytes = fs.readFileSync(zip).toString("latin1");
+  for (const c of catalog) {
+    const file = c.file.includes("view.html?sim=") ? `sims/${c.file.split("sim=")[1]}.js` : c.file;
+    assert.ok(bytes.includes(`sim-studio/${file}`), `${file} missing from the zip: run python3 scripts/make-zip.py`);
+  }
+});
+
+test("every simulation has a syllabus mapping", () => {
+  const sb = { window: {} };
+  vm.runInNewContext(fs.readFileSync(path.join(root, "syllabus.js"), "utf8"), sb);
+  for (const c of catalog) assert.ok(sb.window.SYLLABUS.has(c.subject, c.id), `${c.id} has no syllabus mapping`);
+});

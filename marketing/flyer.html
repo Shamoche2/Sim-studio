@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sim Studio Flyer</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #1b1f2a; background: #fff; }
+    .page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 18mm 16mm; display: flex; flex-direction: column; gap: 9mm; }
+    .brand { font-size: 13pt; font-weight: 800; color: #4b5bdc; letter-spacing: .02em; }
+    h1 { font-size: 30pt; line-height: 1.1; margin: 0; }
+    h1 span { color: #4b5bdc; }
+    .sub { font-size: 14pt; color: #4a5163; margin: 0; }
+    .subjects { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+    .subj { border-radius: 4mm; padding: 5mm; color: #fff; }
+    .subj b { display: block; font-size: 16pt; }
+    .subj span { font-size: 10pt; opacity: .95; }
+    .ph { background: #2f6fed; } .ch { background: #e8590c; } .bi { background: #2b8a3e; }
+    ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 8mm; }
+    ul li { font-size: 12pt; padding-left: 8mm; position: relative; }
+    ul li::before { content: "✓"; position: absolute; left: 0; color: #2b8a3e; font-weight: 800; }
+    .how { background: #f4f5f9; border-radius: 4mm; padding: 6mm; }
+    .how h2 { margin: 0 0 3mm; font-size: 14pt; }
+    .how ol { margin: 0; padding-left: 6mm; font-size: 11.5pt; line-height: 1.6; }
+    .cta { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8mm; border-top: 2px solid #eceefc; padding-top: 7mm; }
+    .url { font-size: 22pt; font-weight: 800; color: #4b5bdc; }
+    .free { background: #4b5bdc; color: #fff; font-weight: 800; font-size: 16pt; padding: 4mm 7mm; border-radius: 3mm; }
+    .contact { font-size: 10.5pt; color: #4a5163; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="brand">◎ SIM STUDIO</div>
+    <h1>150 interactive science simulations for <span>WAEC</span> and <span>IGCSE</span> classes</h1>
+    <p class="sub">Help students see what's happening in physics, chemistry and biology. Move a slider and watch the science change.</p>
+    <div class="subjects">
+      <div class="subj ph"><b>Physics</b><span>Motion, energy, waves, electricity, magnetism, nuclear</span></div>
+      <div class="subj ch"><b>Chemistry</b><span>Atoms, bonding, moles, acids, rates, electrolysis, organic</span></div>
+      <div class="subj bi"><b>Biology</b><span>Cells, enzymes, body systems, genetics, evolution, ecology</span></div>
+    </div>
+    <ul>
+      <li>Organised by WAEC and IGCSE syllabus topics</li>
+      <li>Works offline: no internet needed</li>
+      <li>Runs on phones, laptops and projectors</li>
+      <li>"Try this" questions for every topic</li>
+      <li>Live numbers and graphs</li>
+      <li>Free for teachers and students</li>
+    </ul>
+    <div class="how">
+      <h2>How to use it in your next lesson</h2>
+      <ol>
+        <li>Open <b>sim-stud.netlify.app</b> and type your topic, e.g. "titration".</li>
+        <li>Press <b>Full screen</b> to show it on the projector.</li>
+        <li>Ask students to predict, then move the sliders to test their ideas.</li>
+        <li>No internet in the lab? Click <b>Download for offline use</b> and copy it to a USB stick.</li>
+      </ol>
+    </div>
+    <div class="cta">
+      <div>
+        <div class="url">sim-stud.netlify.app</div>
+        <div class="contact">Questions or a free demo for your school: [your name] · [phone / WhatsApp]</div>
+      </div>
+      <div class="free">FREE</div>
+    </div>
+  </div>
+</body>
+</html>

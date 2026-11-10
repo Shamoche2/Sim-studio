@@ -47,7 +47,16 @@
     .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     .viewer iframe { flex: 1; width: 100%; border: 0; background: #fff; }
     footer { color: var(--muted); font-size: .85rem; padding: 20px 0 40px; text-align: center; }
-    @media (max-width: 600px) { .wrap { padding: 0 16px; } .grid { grid-template-columns: 1fr; } }
+    .tabs { align-items: center; }
+    .cur { margin-left: auto; display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--muted); }
+    .cur select { font: inherit; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+    .links { margin-left: auto; display: flex; gap: 14px; flex-wrap: wrap; }
+    .links a { color: var(--accent); font-weight: 600; text-decoration: none; font-size: .95rem; }
+    .links a:hover { text-decoration: underline; }
+    .group-title { grid-column: 1 / -1; margin: 14px 0 0; font-size: 1.05rem; display: flex; gap: 10px; align-items: baseline; }
+    .group-title .subj-name { font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--c); }
+    .card .topic { font-size: .78rem; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 2px 7px; align-self: flex-start; }
+    @media (max-width: 600px) { .wrap { padding: 0 16px; } .grid { grid-template-columns: 1fr; } .cur { margin-left: 0; width: 100%; } .links { margin-left: 0; } }
   </style>
 </head>
 <body>
@@ -56,6 +65,10 @@
       <div class="top">
         <div class="brand"><span>◎</span> Sim Studio</div>
         <div class="tagline">Interactive science simulations for the classroom. Works offline.</div>
+        <nav class="links" aria-label="Site">
+          <a href="sim-studio-offline.zip" download>⬇ Download for offline use</a>
+          <a href="feedback.html">Send feedback</a>
+        </nav>
       </div>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -66,6 +79,13 @@
         <button class="tab" data-subject="physics" aria-pressed="false">Physics<span class="n" id="n-physics"></span></button>
         <button class="tab" data-subject="chemistry" aria-pressed="false">Chemistry<span class="n" id="n-chemistry"></span></button>
         <button class="tab" data-subject="biology" aria-pressed="false">Biology<span class="n" id="n-biology"></span></button>
+        <label class="cur">Syllabus
+          <select id="cur">
+            <option value="all">All topics</option>
+            <option value="igcse">Cambridge IGCSE</option>
+            <option value="waec">WAEC (WASSCE)</option>
+          </select>
+        </label>
       </div>
     </div>
   </header>
@@ -86,10 +106,15 @@
   </div>
 
   <script src="catalog.js"></script>
+  <script src="syllabus.js"></script>
   <script>
     (function () {
       const CAT = window.CATALOG, $ = (id) => document.getElementById(id);
-      let subject = "all";
+      const SY = window.SYLLABUS;
+      let subject = "all", cur = "all";
+      try { cur = localStorage.getItem("sim-studio-syllabus") || "all"; } catch (e) {}
+      if (!SY.names[cur]) cur = "all";
+      $("cur").value = cur;
       for (const s of ["all", "physics", "chemistry", "biology"]) $("n-" + s).textContent = CAT.filter((c) => s === "all" || c.subject === s).length;
 
       const norm = (t) => t.toLowerCase().normalize("NFKD").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -110,33 +135,56 @@
 
       function results() {
         const q = norm($("q").value);
-        return CAT.filter((c) => subject === "all" || c.subject === subject)
+        return CAT.filter((c) => (subject === "all" || c.subject === subject) && (cur === "all" || SY.topic(cur, c.subject, c.id)))
           .map((c) => ({ c, s: score(c, q) }))
           .filter((r) => r.s > 0)
           .sort((a, b) => b.s - a.s || (q ? 0 : a.c.title.localeCompare(b.c.title)))
           .map((r) => r.c);
       }
 
+      function card(c) {
+        const b = document.createElement("button");
+        b.className = "card"; b.type = "button";
+        b.style.setProperty("--c", `var(--${c.subject})`);
+        b.innerHTML = `<span class="subj"></span><h3></h3><p></p>`;
+        b.querySelector(".subj").textContent = c.subject;
+        b.querySelector("h3").textContent = c.title;
+        b.querySelector("p").textContent = c.summary;
+        const t = cur !== "all" && $("q").value.trim() && SY.topic(cur, c.subject, c.id); // grouped view already shows the topic as a heading
+        if (t) { const tag = document.createElement("span"); tag.className = "topic"; tag.textContent = (cur === "igcse" ? "IGCSE " : "WAEC: ") + t.label; b.append(tag); }
+        b.addEventListener("click", () => open(c));
+        return b;
+      }
+
       function render() {
-        const list = results(), q = $("q").value.trim();
-        $("grid").replaceChildren(...list.map((c) => {
-          const b = document.createElement("button");
-          b.className = "card"; b.type = "button";
-          b.style.setProperty("--c", `var(--${c.subject})`);
-          b.innerHTML = `<span class="subj"></span><h3></h3><p></p>`;
-          b.querySelector(".subj").textContent = c.subject;
-          b.querySelector("h3").textContent = c.title;
-          b.querySelector("p").textContent = c.summary;
-          b.addEventListener("click", () => open(c));
-          return b;
-        }));
+        const list = results(), q = $("q").value.trim(), out = [];
+        if (cur !== "all" && !q) {
+          // Group by subject, then by syllabus topic in syllabus order.
+          for (const subj of ["physics", "chemistry", "biology"]) {
+            const groups = new Map();
+            for (const c of list.filter((x) => x.subject === subj)) {
+              const t = SY.topic(cur, subj, c.id);
+              if (!groups.has(t.key)) groups.set(t.key, { t, items: [] });
+              groups.get(t.key).items.push(c);
+            }
+            for (const { t, items } of [...groups.values()].sort((a, b) => a.t.order - b.t.order)) {
+              const h = document.createElement("h2");
+              h.className = "group-title"; h.style.setProperty("--c", `var(--${subj})`);
+              h.innerHTML = `<span class="subj-name"></span><span></span>`;
+              h.firstChild.textContent = subj; h.lastChild.textContent = t.label;
+              out.push(h, ...items.map(card));
+            }
+          }
+        } else out.push(...list.map(card));
+        $("grid").replaceChildren(...out);
         if (!list.length) {
           const d = document.createElement("div");
           d.className = "empty";
           d.textContent = `No simulation for “${q}” yet. Try a related word, or browse a subject.`;
           $("grid").append(d);
         }
-        $("status").textContent = q ? `${list.length} match${list.length === 1 ? "" : "es"} for “${q}”${list.length ? ". Press Enter to open the best one." : ""}` : `${list.length} simulations`;
+        const where = cur === "all" ? "" : ` on the ${SY.names[cur]} syllabus`;
+        $("status").textContent = q ? `${list.length} match${list.length === 1 ? "" : "es"} for “${q}”${where}${list.length ? ". Press Enter to open the best one." : ""}` : `${list.length} simulations${where}`;
       }
 
       function open(c, push = true) {
@@ -165,6 +213,7 @@
         document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-pressed", String(x === t)));
         render();
       }));
+      $("cur").addEventListener("input", () => { cur = $("cur").value; try { localStorage.setItem("sim-studio-syllabus", cur); } catch (e) {} render(); });
       $("back").addEventListener("click", () => close());
       document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("viewer").hidden) close(); });
       window.addEventListener("popstate", fromHash);

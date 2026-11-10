@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feedback · Sim Studio</title>
+  <style>
+    :root { --bg: #f4f5f9; --surface: #fff; --text: #1b1f2a; --muted: #646b7d; --border: #dfe2ea; --accent: #4b5bdc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+    main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+    a { color: var(--accent); }
+    h1 { margin: 8px 0 4px; }
+    p.lead { color: var(--muted); margin-top: 0; }
+    form { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; display: grid; gap: 14px; }
+    label { font-weight: 600; display: grid; gap: 6px; }
+    input, select, textarea { font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); width: 100%; }
+    textarea { min-height: 120px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .hint { font-weight: 400; color: var(--muted); font-size: .85rem; }
+    button { font: inherit; font-weight: 700; padding: 12px; border-radius: 8px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="./">← Back to the library</a>
+    <h1>Send feedback</h1>
+    <p class="lead">Found a mistake, want a new topic, or used it in a lesson? Tell us. It helps make Sim Studio better for every teacher.</p>
+    <form name="feedback" method="POST" action="thanks.html" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="feedback">
+      <p class="hidden"><label>Don't fill this in: <input name="bot-field"></label></p>
+      <label>I am a…
+        <select name="role" required>
+          <option value="">Choose one</option>
+          <option>Teacher</option><option>Student</option><option>Parent</option><option>School leader</option><option>Other</option>
+        </select>
+      </label>
+      <label>What is it about?
+        <select name="type" required>
+          <option value="">Choose one</option>
+          <option>Something is wrong or broken</option>
+          <option>Suggestion to improve a simulation</option>
+          <option>Request a new topic</option>
+          <option>I used it in a lesson</option>
+          <option>Other</option>
+        </select>
+      </label>
+      <label>Simulation <span class="hint">(if it's about one)</span>
+        <input name="simulation" id="simulation" placeholder="e.g. Acid-base titration">
+      </label>
+      <label>Your message
+        <textarea name="message" required placeholder="What happened, or what would help?"></textarea>
+      </label>
+      <label>Syllabus you teach <span class="hint">(optional)</span>
+        <select name="syllabus"><option value="">—</option><option>WAEC (WASSCE)</option><option>Cambridge IGCSE</option><option>NECO</option><option>Other</option></select>
+      </label>
+      <label>School and country <span class="hint">(optional)</span>
+        <input name="school" placeholder="e.g. Kings College, Lagos">
+      </label>
+      <label>Email <span class="hint">(optional, only if you'd like a reply)</span>
+        <input name="email" type="email" autocomplete="email">
+      </label>
+      <button type="submit">Send feedback</button>
+      <p class="hint">Feedback can only be sent while you're online.</p>
+    </form>
+  </main>
+  <script>
+    // Pre-fill the simulation name when coming from a simulation page: feedback.html?sim=physics/pendulum
+    try {
+      const id = new URLSearchParams(location.search).get("sim");
+      if (id) document.getElementById("simulation").value = id;
+    } catch (e) {}
+  </script>
+</body>
+</html>

@@ -113,6 +113,7 @@
       el("div", { class: "grid" }, el("div", { class: "card" }, stage, readBox), controlsBox),
       el("div", { class: "key", html: cfg.keyIdea || "" }),
       cfg.tryThis ? el("section", { class: "try" }, el("h2", {}, "Try this"), el("ol", {}, ...cfg.tryThis.map((t) => el("li", { html: t })))) : null,
+      el("p", { class: "report" }, el("a", { href: "../feedback.html?sim=" + encodeURIComponent(new URLSearchParams(location.search).get("sim") || cfg.title), target: "_top" }, "Report a problem or suggest an improvement")),
     );
     document.body.append(main);
 
