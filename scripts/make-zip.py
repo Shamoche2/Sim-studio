@@ -7,7 +7,7 @@ import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "sim-studio-offline.zip"
-FILES = ["index.html", "catalog.js", "syllabus.js", "feedback.html", "thanks.html"]
+FILES = ["index.html", "catalog.js", "syllabus.js", "guide.html", "feedback.html", "thanks.html"]
 FOLDERS = ["sims"]
 GUIDE = """SIM STUDIO - OFFLINE VERSION
 ============================
@@ -15,6 +15,7 @@ GUIDE = """SIM STUDIO - OFFLINE VERSION
 1. Unzip this folder (right-click > Extract All on Windows; double-click on Mac).
 2. Open the folder and double-click index.html.
 3. It opens in your web browser. No internet is needed.
+4. Open guide.html for step-by-step directions for every simulation.
 
 Tips
 - Copy the folder to a USB stick to use it on any computer.

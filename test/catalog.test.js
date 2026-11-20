@@ -49,3 +49,11 @@ test("every simulation has a syllabus mapping", () => {
   vm.runInNewContext(fs.readFileSync(path.join(root, "syllabus.js"), "utf8"), sb);
   for (const c of catalog) assert.ok(sb.window.SYLLABUS.has(c.subject, c.id), `${c.id} has no syllabus mapping`);
 });
+
+test("every simulation has step-by-step directions", () => {
+  const sb = { window: {} };
+  for (const s of ["physics", "chemistry", "biology"]) vm.runInNewContext(fs.readFileSync(path.join(root, "sims", "howto", `${s}.js`), "utf8"), sb);
+  const keys = new Set(catalog.map((c) => `${c.subject}/${c.id}`));
+  for (const k of keys) assert.ok((sb.window.HOWTO[k] || []).length >= 3, `${k} has no directions in sims/howto/`);
+  for (const k of Object.keys(sb.window.HOWTO)) assert.ok(keys.has(k), `sims/howto has directions for unknown simulation ${k}`);
+});

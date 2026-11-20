@@ -32,12 +32,17 @@
   .try ol { margin:0; padding-left:20px; }
   .note { font-size:.85rem; color:var(--muted); margin-top:10px; }
   @media (max-width: 760px) { .grid { grid-template-columns:1fr; } }
+  .howto { background: #fff; border: 1px solid var(--border); border-left: 4px solid #2b8a3e; border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 0 0 14px; }
+  .howto summary { font-weight: 700; cursor: pointer; color: #2b8a3e; }
+  .howto ol { margin: 8px 0 2px; padding-left: 22px; }
+  .howto li { margin-bottom: 4px; }
 </style>
 </head>
 <body>
 <main>
   <h1>Projectile Motion</h1>
   <p class="intro">Launch a ball and watch its path. Gravity pulls it down while it keeps moving sideways at a steady speed, which makes the curved path called a <em>parabola</em>.</p>
+  <details class="howto" id="howto" open hidden><summary>How to use this simulation</summary><ol id="howto-steps"></ol></details>
 
   <div class="grid">
     <div class="card">
@@ -234,6 +239,16 @@
   new ResizeObserver(resize).observe($("wrap"));
   updateReadouts();
 })();
+</script>
+<script src="../howto/physics.js"></script>
+<script>
+  // Fill in the "How to use" box from the shared directions file.
+  (function () {
+    const steps = ((window.HOWTO || {})["physics/projectile-motion"] || []).concat(["Press <b>Reset</b> to clear the paths and start again.", "Then try the questions in <b>Try this</b> at the bottom of the page."]);
+    if (steps.length < 3) return;
+    document.getElementById("howto-steps").innerHTML = steps.map((t) => "<li>" + t + "</li>").join("");
+    document.getElementById("howto").hidden = false;
+  })();
 </script>
 </body>
 </html>

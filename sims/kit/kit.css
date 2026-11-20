@@ -36,3 +36,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } main { padding: 12px; } h1 { font-size: 1.35rem; } }
 .report { margin-top: 18px; font-size: .9rem; }
 .report a { color: var(--muted); }
+.howto { background: #fff; border: 1px solid var(--border); border-left: 4px solid #2b8a3e; border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 0 0 14px; }
+.howto summary { font-weight: 700; cursor: pointer; color: #2b8a3e; }
+.howto ol { margin: 8px 0 2px; padding-left: 22px; }
+.howto li { margin-bottom: 4px; }

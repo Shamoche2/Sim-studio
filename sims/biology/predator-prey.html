@@ -37,12 +37,17 @@
   .try ol { margin:0; padding-left:20px; }
   .note { font-size:.85rem; color:var(--muted); margin-top:10px; }
   @media (max-width:860px) { .grid, .charts { grid-template-columns:1fr; } }
+  .howto { background: #fff; border: 1px solid var(--border); border-left: 4px solid #2b8a3e; border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 0 0 14px; }
+  .howto summary { font-weight: 700; cursor: pointer; color: #2b8a3e; }
+  .howto ol { margin: 8px 0 2px; padding-left: 22px; }
+  .howto li { margin-bottom: 4px; }
 </style>
 </head>
 <body>
 <main>
   <h1>Predator–Prey Populations</h1>
   <p class="intro">Rabbits (prey) multiply when there are few foxes. Foxes (predators) multiply when there are plenty of rabbits to eat. Watch how the two populations rise and fall in a repeating cycle.</p>
+  <details class="howto" id="howto" open hidden><summary>How to use this simulation</summary><ol id="howto-steps"></ol></details>
 
   <div class="grid">
     <div class="card">
@@ -221,6 +226,16 @@
   reset();
   requestAnimationFrame(frame);
 })();
+</script>
+<script src="../howto/biology.js"></script>
+<script>
+  // Fill in the "How to use" box from the shared directions file.
+  (function () {
+    const steps = ((window.HOWTO || {})["biology/predator-prey"] || []).concat(["Press <b>Pause</b> to freeze the graphs at any moment.", "Then try the questions in <b>Try this</b> at the bottom of the page."]);
+    if (steps.length < 3) return;
+    document.getElementById("howto-steps").innerHTML = steps.map((t) => "<li>" + t + "</li>").join("");
+    document.getElementById("howto").hidden = false;
+  })();
 </script>
 </body>
 </html>

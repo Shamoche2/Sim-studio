@@ -34,6 +34,17 @@
     return node;
   }
 
+  /** The "How to use this simulation" box: topic-specific steps plus general tips. */
+  function howToBox(cfg, animated) {
+    const id = new URLSearchParams(location.search).get("sim") || "";
+    const steps = ((window.HOWTO || {})[id] || []).slice();
+    if (!steps.length) return null;
+    if (animated) steps.push(cfg.autoplay === false ? "Press <b>Play</b> to start the animation, <b>Pause</b> to freeze it, and <b>Reset</b> to start again." : "Press <b>Pause</b> to freeze the action at any moment, and <b>Reset</b> to start again.");
+    steps.push("Then try the questions in <b>Try this</b> at the bottom of the page.");
+    const box = el("details", { class: "howto", open: "" }, el("summary", {}, "How to use this simulation"), el("ol", {}, ...steps.map((t) => el("li", { html: t }))));
+    return box;
+  }
+
   const fmtNum = (v, digits) => (digits == null ? String(v) : Number(v).toFixed(digits));
 
   function Sim(cfg) {
@@ -110,6 +121,7 @@
     const main = el("main", {},
       el("h1", {}, cfg.title),
       el("p", { class: "intro", html: cfg.intro || "" }),
+      howToBox(cfg, animated),
       el("div", { class: "grid" }, el("div", { class: "card" }, stage, readBox), controlsBox),
       el("div", { class: "key", html: cfg.keyIdea || "" }),
       cfg.tryThis ? el("section", { class: "try" }, el("h2", {}, "Try this"), el("ol", {}, ...cfg.tryThis.map((t) => el("li", { html: t })))) : null,

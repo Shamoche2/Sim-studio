@@ -5,7 +5,7 @@ A library of interactive science simulations for physics, chemistry and biology 
 **Live site: https://sim-stud.netlify.app/**
 
 - **No internet, no API, no installation.** Everything runs in the browser from local files.
-- **Made for teaching.** Every simulation has labelled controls with units, live readouts, a "Key idea" summary, and "Try this" experiments for students.
+- **Made for teaching.** Every simulation has step-by-step "How to use" directions, labelled controls with units, live readouts, a "Key idea" summary, and "Try this" experiments for students. All directions are collected in a printable [Teacher guide](https://sim-stud.netlify.app/guide.html).
 - **Works on projectors and phones.**
 
 ## Use it

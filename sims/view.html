@@ -19,7 +19,11 @@
       const script = document.createElement("script");
       script.src = id + ".js";
       script.onerror = () => (document.body.innerHTML = "<main><h1>Simulation not found</h1></main>");
-      document.body.append(script);
+      // Load the "How to use" directions first; show the simulation even if they fail to load.
+      const howto = document.createElement("script");
+      howto.src = "howto/" + id.split("/")[0] + ".js";
+      howto.onload = howto.onerror = () => document.body.append(script);
+      document.body.append(howto);
     })();
   </script>
 </body>
