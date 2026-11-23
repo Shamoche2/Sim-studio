@@ -1,0 +1,35 @@
+:root { --sp-border: #dde2ec; }
+/* ----- Learning Support toolbar ----- */
+.sp-bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; padding: 8px; background: #fff; border: 1px solid var(--border, #dde2ec); border-radius: 12px; position: sticky; top: 6px; z-index: 5; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.sp-btn { flex: 0 0 auto; font: inherit; font-size: .9rem; font-weight: 600; padding: 7px 11px; border-radius: 999px; border: 1px solid var(--border, #dde2ec); background: var(--bg, #f5f7fb); color: var(--text, #1a2030); cursor: pointer; }
+.sp-btn[aria-pressed="true"] { background: #2b8a3e; border-color: #2b8a3e; color: #fff; }
+.sp-btn:focus-visible { outline: 3px solid #9bbcff; outline-offset: 2px; }
+.sp-words { background: #fff9db; border: 2px solid #fcc419; border-radius: 12px; padding: 12px 16px; margin: 0 0 14px; font-size: 1.12rem; line-height: 1.7; }
+.sp-words h2 { font-size: 1.1rem; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sp-words h3 { font-size: 1rem; margin: 8px 0 4px; }
+.sp-words p { margin: 0; }
+.sp-words dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; }
+.sp-words dt { font-weight: 800; }
+.sp-words dd { margin: 0; }
+.sp-mini { font: inherit; font-size: .85rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid #e0b100; background: #fff; cursor: pointer; flex: 0 0 auto; color: #1a2030; }
+.sp-guide { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); width: min(640px, calc(100% - 24px)); background: #fff; border: 3px solid #2b8a3e; border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,.2); padding: 12px 16px; z-index: 20; font-size: 1.1rem; line-height: 1.6; }
+.sp-count { font-size: .85rem; font-weight: 800; color: #2b8a3e; text-transform: uppercase; letter-spacing: .05em; }
+.sp-step { margin: 4px 0 10px; }
+.sp-guide-buttons { display: flex; gap: 8px; }
+.sp-guide-buttons button { flex: 1; font: inherit; font-weight: 700; padding: 9px; border-radius: 8px; border: 1px solid #2b8a3e; background: #fff; color: #2b8a3e; cursor: pointer; }
+.sp-guide-buttons .sp-next { background: #2b8a3e; color: #fff; }
+.sp-guide-buttons button:disabled { opacity: .4; cursor: default; }
+.sp-auto { display: block; margin-top: 8px; font-size: .85rem; color: var(--muted, #5d667a); }
+body.sp-guiding main { padding-bottom: 210px; }
+.sp-highlight { outline: 4px solid #fab005 !important; outline-offset: 3px; border-radius: 8px; animation: sp-pulse 1.2s ease-in-out infinite; }
+@keyframes sp-pulse { 50% { outline-color: #ffe066; } }
+@media (prefers-reduced-motion: reduce) { .sp-highlight { animation: none; } }
+/* Easy reading: dyslexia-friendly typography and calm colours */
+body.sp-easy { --bg: #fdf6e3; --card: #fffdf6; --text: #1a1a1a; --muted: #3d3d3d; background: #fdf6e3; font-family: Verdana, Tahoma, "Segoe UI", sans-serif; font-size: 18px; line-height: 1.8; letter-spacing: .04em; word-spacing: .12em; }
+body.sp-easy .intro, body.sp-easy .note, body.sp-easy .ctrl small { color: #333; }
+body.sp-easy .readout b { font-size: 1.4rem; }
+body.sp-easy .ctrl label { font-size: 1.02rem; }
+body.sp-easy input[type=range] { height: 30px; }
+/* Focus: only the simulation, controls and readings */
+body.sp-focus .intro, body.sp-focus .howto, body.sp-focus .key, body.sp-focus .try, body.sp-focus .report, body.sp-focus .lab-info { display: none !important; }
+body.sp-guiding .howto { display: none; }

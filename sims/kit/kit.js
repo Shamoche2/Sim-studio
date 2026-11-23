@@ -184,7 +184,7 @@
     let last = null;
     function frame(now) {
       if (running) {
-        const dt = Math.min(0.05, ((now - (last ?? now)) / 1000) * (cfg.timeScale || 1));
+        const dt = Math.min(0.05, ((now - (last ?? now)) / 1000) * (cfg.timeScale || 1)) * (Sim.speed || 1); // Sim.speed: slow motion
         last = now;
         const n = cfg.substeps || 1;
         for (let i = 0; i < n; i++) cfg.step(s, p, dt / n, api);

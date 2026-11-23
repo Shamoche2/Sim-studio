@@ -9,21 +9,29 @@
 <body>
   <script src="kit/kit.js"></script>
   <script>
-    // Loads one simulation script: view.html?sim=physics/pendulum
+    // Loads one page: view.html?sim=physics/pendulum, view.html?lab=physics/pendulum or view.html?sim=tools/molecule-builder
     (function () {
-      const id = new URLSearchParams(location.search).get("sim") || "";
-      if (!/^[a-z]+\/[a-z0-9-]+$/.test(id)) {
+      const q = new URLSearchParams(location.search), sim = q.get("sim") || "", lab = q.get("lab") || "";
+      const id = lab || sim, valid = /^[a-z]+\/[a-z0-9-]+$/.test(id);
+      if (!valid) {
         document.body.innerHTML = "<main><h1>Simulation not found</h1><p>Go back to the library and pick a topic.</p></main>";
         return;
       }
-      const script = document.createElement("script");
-      script.src = id + ".js";
-      script.onerror = () => (document.body.innerHTML = "<main><h1>Simulation not found</h1></main>");
-      // Load the "How to use" directions first; show the simulation even if they fail to load.
-      const howto = document.createElement("script");
-      howto.src = "howto/" + id.split("/")[0] + ".js";
-      howto.onload = howto.onerror = () => document.body.append(script);
-      document.body.append(howto);
+      const subject = id.split("/")[0];
+      // Helpers first (missing ones are skipped), then the page itself, then the Learning Support toolbar.
+      const optional = ["howto/" + subject + ".js", "easy/" + subject + ".js", "extras.js"].concat(lab ? ["kit/lab.js", "howto/labs.js"] : []);
+      const page = lab ? "labs/" + id + ".js" : id + ".js";
+      function load(src, required, next) {
+        const el = document.createElement("script");
+        el.src = src;
+        el.onload = next;
+        el.onerror = required ? () => (document.body.innerHTML = "<main><h1>Simulation not found</h1></main>") : next;
+        document.body.append(el);
+      }
+      (function chain(i) {
+        if (i < optional.length) return load(optional[i], false, () => chain(i + 1));
+        load(page, true, () => load("kit/support.js", false, () => {}));
+      })(0);
     })();
   </script>
 </body>
