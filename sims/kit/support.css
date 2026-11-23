@@ -33,3 +33,14 @@ body.sp-easy input[type=range] { height: 30px; }
 /* Focus: only the simulation, controls and readings */
 body.sp-focus .intro, body.sp-focus .howto, body.sp-focus .key, body.sp-focus .try, body.sp-focus .report, body.sp-focus .lab-info { display: none !important; }
 body.sp-guiding .howto { display: none; }
+
+/* More ways to learn */
+.more-ways{margin:12px 0 14px;padding:12px 14px;border:1px solid #d0bfff;background:#f8f5ff;border-radius:12px}
+.more-ways h2{font-size:1rem;margin:0 0 8px;color:#5f3dc4}
+.mw-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
+.mw-link{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:#fff;border:1px solid #e5dbff;border-radius:10px;text-decoration:none;color:inherit}
+.mw-link:hover,.mw-link:focus{border-color:#7048e8;box-shadow:0 0 0 3px rgba(112,72,232,.15)}
+.mw-icon{font-size:1.6rem;line-height:1}
+.mw-link b{display:block;color:#5f3dc4}
+.mw-link small{display:block;color:#5d667a;margin-top:2px}
+body.sp-focus .more-ways{display:none}

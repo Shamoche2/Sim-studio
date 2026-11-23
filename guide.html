@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Teacher Guide · Sim Studio</title>
   <style>
-    :root { --bg: #f4f5f9; --surface: #fff; --text: #1b1f2a; --muted: #646b7d; --border: #dfe2ea; --accent: #4b5bdc; --physics: #2f6fed; --chemistry: #e8590c; --biology: #2b8a3e; }
+    :root { --bg: #f4f5f9; --surface: #fff; --text: #1b1f2a; --muted: #646b7d; --border: #dfe2ea; --accent: #4b5bdc; --physics: #2f6fed; --chemistry: #e8590c; --biology: #2b8a3e; --labs: #7048e8; }
     * { box-sizing: border-box; }
     body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
     main { max-width: 900px; margin: 0 auto; padding: 20px 16px 48px; }
@@ -41,7 +41,7 @@
     <p class="lead">Step-by-step directions for every simulation. Use them to plan a lesson, or print them for students.</p>
     <div class="bar">
       <select id="subject" aria-label="Subject">
-        <option value="all">All subjects</option><option value="physics">Physics</option><option value="chemistry">Chemistry</option><option value="biology">Biology</option>
+        <option value="all">All subjects</option><option value="physics">Physics</option><option value="chemistry">Chemistry</option><option value="biology">Biology</option><option value="labs">Virtual labs &amp; tools</option>
       </select>
       <select id="cur" aria-label="Syllabus">
         <option value="all">Alphabetical</option><option value="igcse">Group by Cambridge IGCSE topic</option><option value="waec">Group by WAEC (WASSCE) theme</option>
@@ -55,6 +55,8 @@
         <li>Animated simulations have <b>Pause</b> (freeze the action) and <b>Reset</b> (start again).</li>
         <li>Each page has a <b>Key idea</b> summary and three <b>Try this</b> questions for students.</li>
         <li>In class: ask students to <b>predict</b> what will happen before you move a slider, then test it.</li>
+        <li>The <b>Learning Support</b> bar at the top of every page helps students with dyslexia, ADHD, dyscalculia or low vision: <b>Read aloud</b>, <b>Say numbers</b>, <b>Simple words</b>, <b>Guided steps</b> (one step at a time, with the control highlighted), <b>Easy reading</b>, <b>Focus</b> and <b>Slow motion</b>.</li>
+        <li>Each topic page shows <b>More ways to learn</b>: a matching <b>virtual lab</b>, the <b>molecule builder</b>, the <b>digital human body</b> or the <b>formula helper</b>, where these fit the topic.</li>
         <li>No internet? Use <a href="sim-studio-offline.zip">the offline download</a>.</li>
       </ul>
     </section>
@@ -65,9 +67,12 @@
   <script src="sims/howto/physics.js"></script>
   <script src="sims/howto/chemistry.js"></script>
   <script src="sims/howto/biology.js"></script>
+  <script src="sims/howto/tools.js"></script>
+  <script src="labs-tools.js"></script>
+  <script src="sims/howto/labs.js"></script>
   <script>
     (function () {
-      const CAT = window.CATALOG, SY = window.SYLLABUS, HOWTO = window.HOWTO || {}, $ = (id) => document.getElementById(id);
+      const LABHOWTO = window.LABHOWTO || {}, CAT = window.CATALOG, SY = window.SYLLABUS, HOWTO = window.HOWTO || {}, $ = (id) => document.getElementById(id);
       const params = new URLSearchParams(location.search);
       if (params.get("subject")) $("subject").value = params.get("subject");
       if (params.get("syllabus")) $("cur").value = params.get("syllabus");
@@ -103,6 +108,16 @@
           for (const { t, items } of [...groups.values()].sort((a, b) => a.t.order - b.t.order)) {
             const th = document.createElement("h3"); th.className = "topic"; th.textContent = t.label;
             out.push(th, ...items.map(simCard));
+          }
+        }
+        if (subj === "all" || subj === "labs") {
+          const h = document.createElement("h2"); h.className = "subject"; h.style.setProperty("--c", "var(--labs)"); h.textContent = "Virtual labs and learning tools"; out.push(h);
+          for (const c of window.LABS_TOOLS || []) {
+            const d = document.createElement("article"); d.className = "sim"; d.style.setProperty("--c", c.area === "tools" ? "var(--labs)" : `var(--${c.area})`);
+            d.innerHTML = `<h4><a></a></h4><p></p><ol></ol>`; const a = d.querySelector("a"); a.textContent = c.title; a.href = c.file; d.querySelector("p").textContent = c.summary;
+            d.querySelector("ol").innerHTML = ((c.kind === "lab" ? (LABHOWTO[c.howto] || {}).method : HOWTO[c.howto]) || ["Open the page for the full method, equipment and safety notes."]).map((x) => `<li>${x}</li>`).join("");
+            const lh = LABHOWTO[c.howto]; if (lh) { const e = document.createElement("p"); e.innerHTML = `<b>Equipment:</b> ${lh.equipment.join(", ")}.<br><b>Safety:</b> ${lh.safety.join(" ")}`; d.append(e); }
+            out.push(d);
           }
         }
         $("list").replaceChildren(...out);

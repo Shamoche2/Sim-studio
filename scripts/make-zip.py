@@ -7,7 +7,7 @@ import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "sim-studio-offline.zip"
-FILES = ["index.html", "catalog.js", "syllabus.js", "guide.html", "feedback.html", "thanks.html"]
+FILES = ["index.html", "catalog.js", "syllabus.js", "labs-tools.js", "guide.html", "feedback.html", "thanks.html"]
 FOLDERS = ["sims"]
 GUIDE = """SIM STUDIO - OFFLINE VERSION
 ============================

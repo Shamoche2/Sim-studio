@@ -1,5 +1,12 @@
 // Step-by-step directions for the tools (Learning Support "Guided steps" and the "How to use" box).
 window.HOWTO = Object.assign(window.HOWTO || {}, {
+  "tools/formula-helper": [
+    "Choose a <b>Formula</b>, for example speed.",
+    "Choose <b>What do you want to find?</b>. A hand covers it on the triangle.",
+    "Look at the triangle: side by side means multiply; one above the other means divide.",
+    "Type the two numbers you know, then press <b>Work it out</b> to see every step in words and colours.",
+    "Press <b>Practice question</b> to try one yourself. You can always ask to see the steps.",
+  ],
   "tools/molecule-builder": [
     "Choose an atom in <b>Atom to add</b>, for example O, and click on the empty canvas to place it.",
     "Choose H, then click on the O atom twice. Each click adds a hydrogen bonded to the oxygen.",

@@ -28,6 +28,18 @@ npm start          # prints a link students can open, e.g. http://192.168.1.20:8
 | `catalog.js` | List of every simulation (title, keywords, summary) |
 | `sims/kit/` | Shared toolkit: page layout, controls, animation loop, charts, particle engine |
 | `sims/<subject>/<topic>.js` | One file per simulation, opened through `sims/view.html?sim=<subject>/<topic>` |
+| `sims/labs/<subject>/<lab>.js` | 18 virtual labs (results table, graph, calculations, questions), opened through `sims/view.html?lab=<subject>/<lab>` |
+| `sims/tools/` | Learning tools: digital human body, molecule builder, formula helper |
+| `labs-tools.js` | List of labs and tools for the library's "Virtual labs & tools" tab and the teacher guide |
+| `sims/extras.js` | "More ways to learn" links from each topic to its lab and tools |
+| `sims/kit/support.js` | Learning Support bar on every page: read aloud, simple words, guided steps, easy reading, focus, slow motion |
+| `sims/howto/`, `sims/easy/` | Step-by-step directions and simple-word summaries for every topic |
+
+## Add a virtual lab
+
+1. Create `sims/labs/<subject>/<lab>.js` using `Lab({...})` (see `sims/kit/lab.js` for the options). Copy an existing lab.
+2. Add it to `labs-tools.js` and link it to topics in `sims/extras.js`.
+3. Run `node scripts/build-lab-methods.cjs` to update the teacher guide, then `npm test` and `npm run check labs`.
 
 ## Add a simulation
 

@@ -8,7 +8,7 @@
     :root {
       --bg: #f4f5f9; --surface: #fff; --text: #1b1f2a; --muted: #646b7d; --border: #dfe2ea;
       --accent: #4b5bdc; --accent-soft: #eceefc;
-      --physics: #2f6fed; --chemistry: #e8590c; --biology: #2b8a3e;
+      --physics: #2f6fed; --chemistry: #e8590c; --biology: #2b8a3e; --labs: #7048e8;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
@@ -80,6 +80,7 @@
         <button class="tab" data-subject="physics" aria-pressed="false">Physics<span class="n" id="n-physics"></span></button>
         <button class="tab" data-subject="chemistry" aria-pressed="false">Chemistry<span class="n" id="n-chemistry"></span></button>
         <button class="tab" data-subject="biology" aria-pressed="false">Biology<span class="n" id="n-biology"></span></button>
+        <button class="tab" data-subject="labs" aria-pressed="false">🧪 Virtual labs &amp; tools<span class="n" id="n-labs"></span></button>
         <label class="cur">Syllabus
           <select id="cur">
             <option value="all">All topics</option>
@@ -108,15 +109,16 @@
 
   <script src="catalog.js"></script>
   <script src="syllabus.js"></script>
+  <script src="labs-tools.js"></script>
   <script>
     (function () {
-      const CAT = window.CATALOG, $ = (id) => document.getElementById(id);
+      const CAT = window.CATALOG.concat(window.LABS_TOOLS || []), $ = (id) => document.getElementById(id);
       const SY = window.SYLLABUS;
       let subject = "all", cur = "all";
       try { cur = localStorage.getItem("sim-studio-syllabus") || "all"; } catch (e) {}
       if (!SY.names[cur]) cur = "all";
       $("cur").value = cur;
-      for (const s of ["all", "physics", "chemistry", "biology"]) $("n-" + s).textContent = CAT.filter((c) => s === "all" || c.subject === s).length;
+      for (const s of ["all", "physics", "chemistry", "biology", "labs"]) $("n-" + s).textContent = CAT.filter((c) => (s === "all" ? c.subject !== "labs" : c.subject === s)).length;
 
       const norm = (t) => t.toLowerCase().normalize("NFKD").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
       const STOP = new Set(["the", "of", "and", "a", "an", "in", "on", "to", "for", "how", "what", "law", "s"]);
@@ -136,7 +138,7 @@
 
       function results() {
         const q = norm($("q").value);
-        return CAT.filter((c) => (subject === "all" || c.subject === subject) && (cur === "all" || SY.topic(cur, c.subject, c.id)))
+        return CAT.filter((c) => (subject === "all" ? c.subject !== "labs" || q : c.subject === subject) && (cur === "all" || c.subject === "labs" || SY.topic(cur, c.subject, c.id)))
           .map((c) => ({ c, s: score(c, q) }))
           .filter((r) => r.s > 0)
           .sort((a, b) => b.s - a.s || (q ? 0 : a.c.title.localeCompare(b.c.title)))
@@ -148,10 +150,10 @@
         b.className = "card"; b.type = "button";
         b.style.setProperty("--c", `var(--${c.subject})`);
         b.innerHTML = `<span class="subj"></span><h3></h3><p></p>`;
-        b.querySelector(".subj").textContent = c.subject;
+        b.querySelector(".subj").textContent = c.kind === "lab" ? c.area + " · virtual lab" : c.kind === "tool" ? "learning tool" : c.subject;
         b.querySelector("h3").textContent = c.title;
         b.querySelector("p").textContent = c.summary;
-        const t = cur !== "all" && $("q").value.trim() && SY.topic(cur, c.subject, c.id); // grouped view already shows the topic as a heading
+        const t = cur !== "all" && c.subject !== "labs" && $("q").value.trim() && SY.topic(cur, c.subject, c.id); // grouped view already shows the topic as a heading
         if (t) { const tag = document.createElement("span"); tag.className = "topic"; tag.textContent = (cur === "igcse" ? "IGCSE " : "WAEC: ") + t.label; b.append(tag); }
         b.addEventListener("click", () => open(c));
         return b;
@@ -159,7 +161,7 @@
 
       function render() {
         const list = results(), q = $("q").value.trim(), out = [];
-        if (cur !== "all" && !q) {
+        if (cur !== "all" && !q && subject !== "labs") {
           // Group by subject, then by syllabus topic in syllabus order.
           for (const subj of ["physics", "chemistry", "biology"]) {
             const groups = new Map();
@@ -176,6 +178,13 @@
               out.push(h, ...items.map(card));
             }
           }
+        } else if (subject === "labs" && !q) {
+          for (const [area, label] of [["tools", "Learning tools"], ["physics", "Physics virtual labs"], ["chemistry", "Chemistry virtual labs"], ["biology", "Biology virtual labs"]]) {
+            const items = list.filter((x) => x.area === area); if (!items.length) continue;
+            const h = document.createElement("h2"); h.className = "group-title"; h.style.setProperty("--c", area === "tools" ? "var(--labs)" : `var(--${area})`);
+            h.innerHTML = `<span class="subj-name"></span><span></span>`; h.firstChild.textContent = area === "tools" ? "tools" : area; h.lastChild.textContent = label;
+            out.push(h, ...items.map(card));
+          }
         } else out.push(...list.map(card));
         $("grid").replaceChildren(...out);
         if (!list.length) {
@@ -185,7 +194,7 @@
           $("grid").append(d);
         }
         const where = cur === "all" ? "" : ` on the ${SY.names[cur]} syllabus`;
-        $("status").textContent = q ? `${list.length} match${list.length === 1 ? "" : "es"} for “${q}”${where}${list.length ? ". Press Enter to open the best one." : ""}` : `${list.length} simulations${where}`;
+        $("status").textContent = q ? `${list.length} match${list.length === 1 ? "" : "es"} for “${q}”${where}${list.length ? ". Press Enter to open the best one." : ""}` : (subject === "labs" ? `${list.length} virtual labs and learning tools` : `${list.length} simulations${where}`);
       }
 
       function open(c, push = true) {

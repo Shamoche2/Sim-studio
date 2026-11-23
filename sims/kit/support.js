@@ -28,8 +28,25 @@
   const main = document.querySelector("main");
   if (!main) return;
   const h1 = main.querySelector("h1");
+
   const plain = (html) => { const d = document.createElement("div"); d.innerHTML = html; return d.textContent.replace(/\s+/g, " ").trim(); };
   const make = (tag, attrs = {}, html = "") => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); if (html) n.innerHTML = html; return n; };
+  // ----- "More ways to learn": links to the topic's virtual lab and tools (data in ../extras.js) -----
+  (function moreWays() {
+    const base = new URL("../", document.currentScript ? document.currentScript.src : location.href).href;
+    let links = ((window.EXTRAS || {})[id] || []).slice();
+    const idx = window.EXTRAS_INDEX;
+    const isLab = new URLSearchParams(location.search).has("lab");
+    if (isLab && idx && idx.LABS[id]) links = idx.LABS[id][1].map((t) => { const e = (window.CATALOG || []).find((c) => c.subject + "/" + c.id === t); return { icon: "🖥️", label: "Simulation: " + (e ? e.title : t.split("/")[1].replace(/-/g, " ")), href: e ? "../" + e.file : "view.html?sim=" + t, note: e ? e.summary : "Explore the idea behind this practical." }; });
+    else if (isLab) links = [];
+    if (!links.length) return;
+    const box = make("section", { class: "more-ways", "aria-label": "More ways to learn" }, "<h2>More ways to learn this topic</h2>");
+    const list = make("div", { class: "mw-list" });
+    for (const l of links) { const a = make("a", { class: "mw-link", href: base + l.href, target: "_top" }, `<span class="mw-icon" aria-hidden="true">${l.icon}</span><span><b>${l.label}</b><small>${l.note}</small></span>`); list.append(a); }
+    box.append(list);
+    const after = main.querySelector(".howto") || main.querySelector(".intro") || h1;
+    if (after) after.after(box); else main.prepend(box);
+  })();
 
   // ----- speech -----
   const canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";

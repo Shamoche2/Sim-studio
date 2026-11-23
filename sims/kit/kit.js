@@ -36,12 +36,12 @@
 
   /** The "How to use this simulation" box: topic-specific steps plus general tips. */
   function howToBox(cfg, animated) {
-    const id = new URLSearchParams(location.search).get("sim") || "";
+    const q = new URLSearchParams(location.search), id = q.get("sim") || q.get("lab") || "";
     const steps = ((window.HOWTO || {})[id] || []).slice();
     if (!steps.length) return null;
     if (animated) steps.push(cfg.autoplay === false ? "Press <b>Play</b> to start the animation, <b>Pause</b> to freeze it, and <b>Reset</b> to start again." : "Press <b>Pause</b> to freeze the action at any moment, and <b>Reset</b> to start again.");
-    steps.push("Then try the questions in <b>Try this</b> at the bottom of the page.");
-    const box = el("details", { class: "howto", open: "" }, el("summary", {}, "How to use this simulation"), el("ol", {}, ...steps.map((t) => el("li", { html: t }))));
+    if (cfg.tryThis) steps.push("Then try the questions in <b>Try this</b> at the bottom of the page.");
+    const box = el("details", { class: "howto", open: "" }, el("summary", {}, cfg.howToTitle || "How to use this simulation"), el("ol", {}, ...steps.map((t) => el("li", { html: t }))));
     return box;
   }
 
