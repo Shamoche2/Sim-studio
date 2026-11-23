@@ -19,7 +19,7 @@
       }
       const subject = id.split("/")[0];
       // Helpers first (missing ones are skipped), then the page itself, then the Learning Support toolbar.
-      const optional = ["howto/" + subject + ".js", "easy/" + subject + ".js", "extras.js"].concat(lab ? ["kit/lab.js", "howto/labs.js"] : []);
+      const optional = ["howto/" + subject + ".js", "easy/" + subject + ".js", "extras.js"].concat(lab ? ["kit/lab.js", "howto/labs.js"] : []).concat(subject === "tools" ? ["../catalog.js"] : []);
       const page = lab ? "labs/" + id + ".js" : id + ".js";
       function load(src, required, next) {
         const el = document.createElement("script");
