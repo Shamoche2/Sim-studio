@@ -45,7 +45,10 @@ if (shots) fs.mkdirSync(shots, { recursive: true });
         const n = await sel.evaluate((el) => el.options.length);
         for (let i = 0; i < n; i++) { await sel.selectOption({ index: i }); await page.waitForTimeout(80); }
       }
-      for (const b of await page.$$("button")) { await b.click(); await page.waitForTimeout(150); }
+      // Press the simulation's own buttons (not the Learning Support toolbar), skipping disabled ones.
+      for (const b of await page.$$(".card .buttons button:not([disabled]), .lab-actions button:not([disabled])")) { await b.click(); await page.waitForTimeout(150); }
+      // Learning Support toolbar: every toggle must work without errors.
+      for (const b of await page.$$(".sp-btn[data-key=words], .sp-btn[data-key=guide], .sp-btn[data-key=easy], .sp-btn[data-key=focus], .sp-btn[data-key=slow]")) { await b.click(); await page.waitForTimeout(60); await b.click(); }
       await page.waitForTimeout(600);
       const bad = await page.evaluate(() => /NaN|Infinity|undefined/.test(document.querySelector(".readouts")?.innerText || ""));
       if (bad) errors.push("bad readout at end");
